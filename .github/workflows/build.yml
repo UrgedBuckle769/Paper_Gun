@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,12 +19,13 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn clean package --file pom.xml
+        working-directory: ./PaperGun
+        run: mvn clean package --no-transfer-progress
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: PaperGun
-          path: target/PaperGun-*.jar
+          path: PaperGun/target/PaperGun-*.jar
           retention-days: 30
           if-no-files-found: error
