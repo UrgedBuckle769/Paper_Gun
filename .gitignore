@@ -11,6 +11,8 @@ target/
 lib/
 libs/
 vendor/
+# Dependencies
+target/
 
 # Logs and temp files
 *.log
@@ -25,8 +27,6 @@ vendor/
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # OS specific
 .DS_Store
@@ -39,4 +39,43 @@ htmlcov/
 
 # Gradle
 .gradle/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.tar.gz
+.DS_Store
+Thumbs.db
+
+# Maven
+lib/
+logs/
+*.tar
+*.zip
+*.gz
 ```
