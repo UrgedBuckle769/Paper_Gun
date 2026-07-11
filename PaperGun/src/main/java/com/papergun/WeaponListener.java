@@ -139,17 +139,14 @@ public class WeaponListener implements Listener {
         Player player = event.getPlayer();
         ItemStack mainHand = event.getMainHandItem();
         
-        // If holding a weapon in main hand, prevent swap (F key)
+        // If holding a weapon in main hand, prevent swap (F key) and trigger reload
         if (WeaponData.isWeapon(mainHand)) {
-            // Check if it's a reload attempt
+            event.setCancelled(true);
             if (!WeaponData.isReloading(mainHand)) {
                 // Start reload instead of swapping
-                event.setCancelled(true);
                 ReloadingMechanic.startReload(player, mainHand, plugin);
-            } else {
-                // Already reloading, just cancel
-                event.setCancelled(true);
             }
+            // If already reloading, just cancel the swap (do nothing else)
         }
     }
     
