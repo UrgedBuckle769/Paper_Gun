@@ -1,15 +1,6 @@
 ```
-# Compiled and build artifacts
-*.class
-*.jar
-*.war
-*.ear
-target/
-
 # Dependencies
-.gradle/
-node_modules/
-lib/
+target/
 
 # Logs and temp files
 *.log
@@ -23,10 +14,44 @@ lib/
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# OS generated files
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.tar.gz
 .DS_Store
 Thumbs.db
+
+# Maven
+lib/
+logs/
+*.tar
+*.zip
+*.gz
 ```
