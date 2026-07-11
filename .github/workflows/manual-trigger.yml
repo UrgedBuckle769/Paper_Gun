@@ -1,0 +1,38 @@
+name: Manual Trigger Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Name to greet'
+        required: true
+        default: 'World'
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  hello-world:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Greet user
+        run: |
+          echo "Hello, ${{ github.event.inputs.name }}!"
+          echo "Deploying to: ${{ github.event.inputs.environment }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Workflow run ID: ${{ github.run_id }}"
+
+      - name: Show environment info
+        run: |
+          echo "=== Environment Information ==="
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
