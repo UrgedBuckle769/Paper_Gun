@@ -121,7 +121,7 @@ public class WeaponListener implements Listener {
         // Shoot
         ShootingMechanic.shoot(player, weaponType);
         
-        // Decrease ammo
+        // Decrease ammo and update last shot time
         WeaponData.setCurrentAmmo(item, currentAmmo - 1);
         WeaponData.setLastShotTime(item, currentTime);
         
