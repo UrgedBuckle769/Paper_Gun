@@ -1,19 +1,21 @@
 ```
 # Compiled and build artifacts
 *.class
-*.jar
-*.war
-*.ear
+*.o
+*.obj
+*.out
+build/
 target/
 
 # Dependencies
-.gradle/
-node_modules/
 lib/
+libs/
+vendor/
 
 # Logs and temp files
 *.log
 *.tmp
+*.swp
 
 # Environment
 .env
@@ -26,7 +28,15 @@ lib/
 *.swp
 *.swo
 
-# OS generated files
+# OS specific
 .DS_Store
 Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Gradle
+.gradle/
 ```
