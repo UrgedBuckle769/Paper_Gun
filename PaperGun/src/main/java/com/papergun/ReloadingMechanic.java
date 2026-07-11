@@ -14,35 +14,27 @@ public class ReloadingMechanic {
         WeaponType weaponType = WeaponData.getWeaponType(weapon);
         int magazineSize = WeaponData.getMagazineSize(weapon);
 
-        // Set reloading state
         WeaponData.setReloading(weapon, true);
-
-        // Send reload message (Chinese-English mixed)
         player.sendMessage("§e正在换弹... Reloading §7(" + weaponType.getChineseName() + ")");
 
-        // Apply Slowness I effect
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 0, false, false));
+        // 修复废弃 API 警告：将 SLOW 改为 SLOWNESS
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 0, false, false));
 
-        // Reload time based on weapon type (in ticks)
         int reloadTime = getReloadTime(weaponType);
 
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (!player.isOnline()) {
-                    // Remove slowness if player offline
-                    player.removePotionEffect(PotionEffectType.SLOW);
+                    player.removePotionEffect(PotionEffectType.SLOWNESS);
                     cancel();
                     return;
                 }
 
-                // Check main hand AND offhand for the weapon
                 ItemStack currentMainHand = player.getInventory().getItemInMainHand();
                 ItemStack currentOffHand = player.getInventory().getItemInOffHand();
-                
                 boolean foundWeapon = false;
                 ItemStack foundItem = null;
-                boolean isInOffHand = false;
 
                 if (isSameWeapon(currentMainHand, weapon)) {
                     foundWeapon = true;
@@ -50,36 +42,24 @@ public class ReloadingMechanic {
                 } else if (isSameWeapon(currentOffHand, weapon)) {
                     foundWeapon = true;
                     foundItem = currentOffHand;
-                    isInOffHand = true;
                 }
 
                 if (!foundWeapon || (foundItem != null && !WeaponData.isReloading(foundItem))) {
-                    // Player switched weapon, cancel reload
                     WeaponData.setReloading(weapon, false);
-                    player.removePotionEffect(PotionEffectType.SLOW);
+                    player.removePotionEffect(PotionEffectType.SLOWNESS);
                     player.sendMessage("§c换弹已取消！Reload cancelled!");
                     cancel();
                     return;
                 }
 
-                // Complete reload - update the actual item found
                 WeaponData.setCurrentAmmo(foundItem, magazineSize);
                 WeaponData.setReloading(foundItem, false);
 
-                // Remove slowness effect
-                player.removePotionEffect(PotionEffectType.SLOW);
-
-                // Update lore
+                player.removePotionEffect(PotionEffectType.SLOWNESS);
                 updateWeaponLore(foundItem, weaponType, magazineSize);
-
                 player.sendMessage("§a换弹完成！Reload complete! §e" + magazineSize + "/" + magazineSize);
                 player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
-
-                // Spawn reload complete particles
                 player.spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, player.getLocation().add(0, 1.5, 0), 20, 0.5, 0.5, 0.5, 0.1);
-                
-                // Keep weapon in the same hand after reload (don't auto-swap)
-                // If weapon was in offhand, it stays in offhand
             }
         }.runTaskLater(plugin, reloadTime);
     }
@@ -93,12 +73,14 @@ public class ReloadingMechanic {
 
     private static int getReloadTime(WeaponType weaponType) {
         return switch (weaponType) {
-            case PISTOL -> 40;      // 2 seconds
-            case REVOLVER -> 60;    // 3 seconds
-            case RIFLE -> 50;       // 2.5 seconds
-            case ASSAULT_RIFLE -> 70; // 3.5 seconds
-            case SNIPER_RIFLE -> 80;  // 4 seconds
-            case SHOTGUN -> 90;     // 4.5 seconds (shell by shell)
+            case PISTOL -> 40;
+            case REVOLVER -> 60;
+            case RIFLE -> 50;
+            case ASSAULT_RIFLE -> 70;
+            case SNIPER_RIFLE -> 80;
+            case SHOTGUN -> 90;
+            // 修复编译错误：添加 default 分支兜底，防止未覆盖的枚举值导致报错
+            default -> 60; 
         };
     }
 
