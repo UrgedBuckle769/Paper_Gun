@@ -1,5 +1,10 @@
 package com.papergun;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -10,6 +15,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.Sound;
 
 public class WeaponListener implements Listener {
     
@@ -18,6 +24,51 @@ public class WeaponListener implements Listener {
     public WeaponListener(PaperGunPlugin plugin) {
         this.plugin = plugin;
         startActionBarUpdater();
+        registerSoundPacketListener();
+    }
+    
+    private void registerSoundPacketListener() {
+        // Use ProtocolLib to intercept sound packets and change blast to blast_far for other players
+        PacketAdapter soundPacketListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, 
+                com.comphenix.protocol.PacketType.Play.Server.NAMED_SOUND_EFFECT) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                // Get the shooter UUID from packet context or skip if it's the shooter
+                // We need to check if this is our firework blast sound
+                String soundEffect = event.getPacket().getStrings().read(0);
+                
+                if ("minecraft:entity.firework_rocket.blast".equals(soundEffect)) {
+                    Player shooter = getShooterFromContext(event.getPlayer());
+                    
+                    // If the receiving player is NOT the shooter, change to blast_far
+                    if (shooter != null && !event.getPlayer().getUniqueId().equals(shooter.getUniqueId())) {
+                        event.getPacket().getStrings().write(0, "minecraft:entity.firework_rocket.blast_far");
+                    }
+                }
+            }
+        };
+        
+        ProtocolLibrary.getProtocolManager().addPacketListener(soundPacketListener);
+    }
+    
+    // Helper method to track recent shooters
+    private static final java.util.Map<java.util.UUID, Long> recentShooters = new java.util.concurrent.ConcurrentHashMap<>();
+    
+    public static void markPlayerAsShooter(Player player) {
+        recentShooters.put(player.getUniqueId(), System.currentTimeMillis());
+        // Clean up old entries after 1 second
+        long now = System.currentTimeMillis();
+        recentShooters.entrySet().removeIf(e -> now - e.getValue() > 1000);
+    }
+    
+    public static Player getShooterFromContext(Player receiver) {
+        long now = System.currentTimeMillis();
+        // Find the most recent shooter within 500ms
+        return recentShooters.entrySet().stream()
+            .filter(e -> now - e.getValue() < 500)
+            .findFirst()
+            .map(e -> receiver.getServer().getPlayer(e.getKey()))
+            .orElse(null);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -60,9 +111,12 @@ public class WeaponListener implements Listener {
         int currentAmmo = WeaponData.getCurrentAmmo(item);
         if (currentAmmo <= 0) {
             player.sendMessage("§c弹药耗尽！按 F 键换弹.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1.0f, 2.0f);
+            player.playSound(player.getLocation(), Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1.0f, 2.0f);
             return;
         }
+        
+        // Mark player as shooter for sound packet handling
+        markPlayerAsShooter(player);
         
         // Shoot
         ShootingMechanic.shoot(player, weaponType);

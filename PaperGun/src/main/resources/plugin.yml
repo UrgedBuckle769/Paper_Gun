@@ -6,11 +6,13 @@ description: A gun plugin for PurPur/Paper servers
 authors:
   - ABYDOS-Server-Team
   - Shiroko0516L
+  
+depend: [ProtocolLib]
 
 commands:
   papergun:
     description: Main command for PaperGun
-    usage: /papergun setweapon <type> <ammo>
+    usage: /papergun <setweapon|setceweapon|listguns|delgun> ...
     permission: papergun.admin
 
 permissions:
