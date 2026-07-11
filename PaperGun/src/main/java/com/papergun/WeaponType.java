@@ -12,7 +12,8 @@ public enum WeaponType {
     RIFLE("步枪", 10, 150, 1, false),
     ASSAULT_RIFLE("突击步枪", 30, 80, 1, true),
     SNIPER_RIFLE("狙击步枪", 5, 500, 1, false),
-    SHOTGUN("霰弹枪", 8, 300, 5, false);
+    SHOTGUN("霰弹枪", 8, 300, 5, false),
+    RPG("火箭筒", 1, 600, 1, false);
 
     private final String chineseName;
     private final int defaultMagazineSize;
