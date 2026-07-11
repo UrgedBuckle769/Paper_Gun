@@ -4,7 +4,8 @@ main: com.papergun.PaperGunPlugin
 api-version: '1.20'
 description: A gun plugin for PurPur/Paper servers
 authors:
-  - PaperGunTeam
+  - ABYDOS-Server-Team
+  - Shiroko0516L
 
 commands:
   papergun:

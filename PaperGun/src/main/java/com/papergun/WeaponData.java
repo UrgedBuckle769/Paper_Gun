@@ -95,19 +95,22 @@ public class WeaponData {
 
     public static void setWeapon(ItemStack item, WeaponType type, int magazineSize) {
         if (item == null) return;
-        if (!item.hasItemMeta()) {
-            item.setItemMeta(org.bukkit.Bukkit.createInventory(null, 9).getItem(0).getItemMeta());
+        
+        // Ensure item has meta, create one if needed
+        var meta = item.getItemMeta();
+        if (meta == null) {
+            meta = org.bukkit.Bukkit.getItemFactory().getItemMeta(item.getType());
+            if (meta == null) return;
         }
-        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(weaponTypeKey, PersistentDataType.STRING, type.name());
         pdc.set(magazineSizeKey, PersistentDataType.INTEGER, magazineSize);
         pdc.set(currentAmmoKey, PersistentDataType.INTEGER, magazineSize);
         pdc.set(lastShotTimeKey, PersistentDataType.LONG, 0L);
         pdc.set(isReloadingKey, PersistentDataType.BOOLEAN, false);
         
-        // Update item name and lore
-        var meta = item.getItemMeta();
-        meta.setDisplayName("§6" + type.getChineseName());
+        // Update lore only, keep original display name
         var lore = new java.util.ArrayList<String>();
         lore.add("§7类型: " + type.getChineseName());
         lore.add("§7弹匣容量: §e" + magazineSize);

@@ -17,8 +17,8 @@ public class PaperGunPlugin extends JavaPlugin {
         // Register command
         getCommand("papergun").setExecutor(new PaperGunCommand());
         
-        // Register listener
-        getServer().getPluginManager().registerEvents(new WeaponListener(), this);
+        // Register listener with plugin instance
+        getServer().getPluginManager().registerEvents(new WeaponListener(this), this);
         
         getLogger().info("PaperGun 已启用!");
         getLogger().info("使用 /papergun setweapon <类型> <弹匣容量> 来设置武器");
