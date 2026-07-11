@@ -17,6 +17,8 @@ libs/
 *.log
 *.tmp
 *.swp
+# Dependencies
+node_modules/
 
 # Environment
 .env
@@ -133,4 +135,11 @@ secrets/
 credentials.json
 *.key
 *.pem
+.env.*
+
+# Editors
+.vscode/
+
+# Logs
+*.log
 ```
