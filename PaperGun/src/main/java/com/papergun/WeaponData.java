@@ -6,6 +6,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class WeaponData {
     private static NamespacedKey weaponTypeKey;
@@ -13,13 +15,30 @@ public class WeaponData {
     private static NamespacedKey currentAmmoKey;
     private static NamespacedKey lastShotTimeKey;
     private static NamespacedKey isReloadingKey;
-
+    private static NamespacedKey craftEngineIdKey;
+    
+    // Store gun configurations by CraftEngine ID
+    private static final ConcurrentHashMap<String, GunConfig> gunConfigs = new ConcurrentHashMap<>();
+    
+    public static class GunConfig {
+        public final String craftEngineId;
+        public final WeaponType weaponType;
+        public final int magazineSize;
+        
+        public GunConfig(String craftEngineId, WeaponType weaponType, int magazineSize) {
+            this.craftEngineId = craftEngineId;
+            this.weaponType = weaponType;
+            this.magazineSize = magazineSize;
+        }
+    }
+    
     public static void init(Plugin plugin) {
         weaponTypeKey = new NamespacedKey(plugin, "weapon_type");
         magazineSizeKey = new NamespacedKey(plugin, "magazine_size");
         currentAmmoKey = new NamespacedKey(plugin, "current_ammo");
         lastShotTimeKey = new NamespacedKey(plugin, "last_shot_time");
         isReloadingKey = new NamespacedKey(plugin, "is_reloading");
+        craftEngineIdKey = new NamespacedKey(plugin, "craftengine_id");
     }
 
     public static NamespacedKey getWeaponTypeKey() {
@@ -93,7 +112,66 @@ public class WeaponData {
         item.getItemMeta().getPersistentDataContainer().set(isReloadingKey, PersistentDataType.BOOLEAN, reloading);
     }
 
+    public static String getCraftEngineId(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.get(craftEngineIdKey, PersistentDataType.STRING);
+    }
+
+    public static void setCraftEngineId(ItemStack item, String id) {
+        if (item == null) return;
+        var meta = item.getItemMeta();
+        if (meta == null) return;
+        meta.getPersistentDataContainer().set(craftEngineIdKey, PersistentDataType.STRING, id);
+        item.setItemMeta(meta);
+    }
+
+    public static void registerGunConfig(String craftEngineId, WeaponType type, int magazineSize) {
+        gunConfigs.put(craftEngineId, new GunConfig(craftEngineId, type, magazineSize));
+    }
+
+    public static GunConfig getGunConfig(String craftEngineId) {
+        return gunConfigs.get(craftEngineId);
+    }
+
+    public static ConcurrentHashMap<String, GunConfig> getAllGunConfigs() {
+        return gunConfigs;
+    }
+
+    public static void applyGunConfigToItem(ItemStack item, GunConfig config) {
+        if (item == null || config == null) return;
+        
+        var meta = item.getItemMeta();
+        if (meta == null) {
+            meta = org.bukkit.Bukkit.getItemFactory().getItemMeta(item.getType());
+            if (meta == null) return;
+        }
+        
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(weaponTypeKey, PersistentDataType.STRING, config.weaponType.name());
+        pdc.set(magazineSizeKey, PersistentDataType.INTEGER, config.magazineSize);
+        pdc.set(currentAmmoKey, PersistentDataType.INTEGER, config.magazineSize);
+        pdc.set(lastShotTimeKey, PersistentDataType.LONG, 0L);
+        pdc.set(isReloadingKey, PersistentDataType.BOOLEAN, false);
+        
+        // Update lore only, keep original display name
+        var lore = new java.util.ArrayList<String>();
+        lore.add("§7类型：" + config.weaponType.getChineseName());
+        lore.add("§7弹匣容量：§e" + config.magazineSize);
+        lore.add("§7当前弹药：§e" + config.magazineSize + "/" + config.magazineSize);
+        lore.add("§7冷却时间：§e" + (config.weaponType.getCooldownTicks() / 20.0) + "秒");
+        if (config.weaponType.isAutoFire()) {
+            lore.add("§a自动武器");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+    }
+
     public static void setWeapon(ItemStack item, WeaponType type, int magazineSize) {
+        setWeapon(item, type, magazineSize, null);
+    }
+
+    public static void setWeapon(ItemStack item, WeaponType type, int magazineSize, String craftEngineId) {
         if (item == null) return;
         
         // Ensure item has meta, create one if needed
@@ -110,12 +188,17 @@ public class WeaponData {
         pdc.set(lastShotTimeKey, PersistentDataType.LONG, 0L);
         pdc.set(isReloadingKey, PersistentDataType.BOOLEAN, false);
         
+        // Store CraftEngine ID if provided
+        if (craftEngineId != null) {
+            pdc.set(craftEngineIdKey, PersistentDataType.STRING, craftEngineId);
+        }
+        
         // Update lore only, keep original display name
         var lore = new java.util.ArrayList<String>();
-        lore.add("§7类型: " + type.getChineseName());
-        lore.add("§7弹匣容量: §e" + magazineSize);
-        lore.add("§7当前弹药: §e" + magazineSize + "/" + magazineSize);
-        lore.add("§7冷却时间: §e" + (type.getCooldownTicks() / 20.0) + "秒");
+        lore.add("§7类型：" + type.getChineseName());
+        lore.add("§7弹匣容量：§e" + magazineSize);
+        lore.add("§7当前弹药：§e" + magazineSize + "/" + magazineSize);
+        lore.add("§7冷却时间：§e" + (type.getCooldownTicks() / 20.0) + "秒");
         if (type.isAutoFire()) {
             lore.add("§a自动武器");
         }

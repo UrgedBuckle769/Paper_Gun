@@ -15,8 +15,12 @@ public class ShootingMechanic {
         Location eyeLoc = player.getEyeLocation();
         Vector direction = eyeLoc.getDirection();
         
-        // Play shoot sound
-        player.playSound(eyeLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
+        // Play shoot sound - shooter hears blast, others hear blast_far
+        // Shooter hears minecraft:entity.firework_rocket.blast
+        player.playSound(eyeLoc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.0f);
+        
+        // Others will hear minecraft:entity.firework_rocket.blast_far via PacketListener
+        // This is handled in WeaponListener using ProtocolLib
         
         // Spawn particles
         player.spawnParticle(Particle.FLAME, eyeLoc.add(direction.clone().multiply(2)), 10, 0.1, 0.1, 0.1, 0.05);
