@@ -1,10 +1,23 @@
 ```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
+build/
+target/
+
+# Dependencies
+lib/
+libs/
+vendor/
 # Dependencies
 target/
 
 # Logs and temp files
 *.log
 *.tmp
+*.swp
 
 # Environment
 .env
@@ -15,6 +28,17 @@ target/
 .vscode/
 .idea/
 
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Gradle
+.gradle/
 # Python
 __pycache__/
 *.pyc

@@ -41,33 +41,36 @@ public class ReloadingMechanic {
                 ItemStack currentOffHand = player.getInventory().getItemInOffHand();
                 
                 boolean foundWeapon = false;
+                ItemStack foundItem = null;
                 boolean isInOffHand = false;
-                
+
                 if (isSameWeapon(currentMainHand, weapon)) {
                     foundWeapon = true;
+                    foundItem = currentMainHand;
                 } else if (isSameWeapon(currentOffHand, weapon)) {
                     foundWeapon = true;
+                    foundItem = currentOffHand;
                     isInOffHand = true;
                 }
-                
-                if (!foundWeapon || !WeaponData.isReloading(weapon)) {
+
+                if (!foundWeapon || (foundItem != null && !WeaponData.isReloading(foundItem))) {
                     // Player switched weapon, cancel reload
                     WeaponData.setReloading(weapon, false);
                     player.removePotionEffect(PotionEffectType.SLOW);
-                    player.sendMessage("§c换弹已取消! Reload cancelled!");
+                    player.sendMessage("§c换弹已取消！Reload cancelled!");
                     cancel();
                     return;
                 }
 
-                // Complete reload
-                WeaponData.setCurrentAmmo(weapon, magazineSize);
-                WeaponData.setReloading(weapon, false);
+                // Complete reload - update the actual item found
+                WeaponData.setCurrentAmmo(foundItem, magazineSize);
+                WeaponData.setReloading(foundItem, false);
 
                 // Remove slowness effect
                 player.removePotionEffect(PotionEffectType.SLOW);
 
                 // Update lore
-                updateWeaponLore(weapon, weaponType, magazineSize);
+                updateWeaponLore(foundItem, weaponType, magazineSize);
 
                 player.sendMessage("§a换弹完成！Reload complete! §e" + magazineSize + "/" + magazineSize);
                 player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
@@ -75,21 +78,8 @@ public class ReloadingMechanic {
                 // Spawn reload complete particles
                 player.spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, player.getLocation().add(0, 1.5, 0), 20, 0.5, 0.5, 0.5, 0.1);
                 
-                // If weapon was in offhand, move it back to main hand after reload
-                if (isInOffHand) {
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (player.isOnline()) {
-                                ItemStack offHand = player.getInventory().getItemInOffHand();
-                                if (isSameWeapon(offHand, weapon)) {
-                                    player.getInventory().setItemInMainHand(offHand.clone());
-                                    player.getInventory().setItemInOffHand(new ItemStack(org.bukkit.Material.AIR));
-                                }
-                            }
-                        }
-                    }.runTaskLater(plugin, 5L);
-                }
+                // Keep weapon in the same hand after reload (don't auto-swap)
+                // If weapon was in offhand, it stays in offhand
             }
         }.runTaskLater(plugin, reloadTime);
     }

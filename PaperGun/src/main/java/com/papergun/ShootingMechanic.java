@@ -132,21 +132,19 @@ public class ShootingMechanic {
         loc.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0, 0, 0, 0);
         loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 1.0f);
         
-        // Deal damage to all entities within radius (no block damage)
+        // Deal damage to all players within radius (no block damage, only damage players)
         double radius = 6.0;
         for (Entity entity : loc.getWorld().getNearbyEntities(loc, radius, radius, radius)) {
-            if (entity instanceof LivingEntity livingEntity && entity != shooter) {
+            if (entity instanceof Player player && entity != shooter) {
                 double distance = loc.distance(entity.getLocation());
                 if (distance <= radius) {
                     // Damage falls off with distance
                     double damage = 20.0 * (1.0 - (distance / radius));
-                    livingEntity.damage(damage, shooter);
+                    player.damage(damage, shooter);
                     
                     // Knockback
                     Vector knockback = entity.getLocation().toVector().subtract(loc.toVector()).normalize().multiply(2.0);
-                    if (entity instanceof org.bukkit.entity.LivingEntity le) {
-                        le.setVelocity(le.getVelocity().add(knockback));
-                    }
+                    player.setVelocity(player.getVelocity().add(knockback));
                 }
             }
         }
