@@ -22,6 +22,12 @@ public class ShootingMechanic {
         // Others will hear minecraft:entity.firework_rocket.blast_far via PacketListener
         // This is handled in WeaponListener using ProtocolLib
         
+        // Handle RPG separately with virtual projectile
+        if (weaponType == WeaponType.RPG) {
+            shootRPG(player, eyeLoc, direction);
+            return;
+        }
+        
         // Spawn particles
         player.spawnParticle(Particle.FLAME, eyeLoc.add(direction.clone().multiply(2)), 10, 0.1, 0.1, 0.1, 0.05);
         
@@ -80,6 +86,75 @@ public class ShootingMechanic {
         }
     }
     
+    private static void shootRPG(Player player, Location eyeLoc, Vector direction) {
+        // RPG uses a virtual projectile that travels in a straight line
+        // and explodes on impact with entities, dealing area damage without block damage
+        
+        Location projectileLoc = eyeLoc.clone().add(direction.clone().multiply(3));
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    cancel();
+                    return;
+                }
+                
+                // Move projectile forward
+                projectileLoc.add(direction.clone().multiply(2));
+                
+                // Check for entity collision
+                for (Entity entity : projectileLoc.getWorld().getNearbyEntities(projectileLoc, 1.5, 1.5, 1.5)) {
+                    if (entity != player && entity instanceof LivingEntity livingEntity) {
+                        // Hit an entity - explode!
+                        explodeRPG(projectileLoc, player);
+                        cancel();
+                        return;
+                    }
+                }
+                
+                // Check for block collision
+                if (projectileLoc.getBlock().getType().isSolid()) {
+                    // Hit a block - explode anyway but no block damage
+                    explodeRPG(projectileLoc, player);
+                    cancel();
+                    return;
+                }
+                
+                // Spawn trail particles
+                player.spawnParticle(Particle.SMOKE_NORMAL, projectileLoc, 3, 0.1, 0.1, 0.1, 0.02);
+            }
+        }.runTaskTimer(player.getServer().getPluginManager().getPlugin("PaperGun"), 0L, 1L);
+    }
+    
+    private static void explodeRPG(Location loc, Player shooter) {
+        // Explosion effect without block damage
+        loc.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0, 0, 0, 0);
+        loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 1.0f);
+        
+        // Deal damage to all entities within radius (no block damage)
+        double radius = 6.0;
+        for (Entity entity : loc.getWorld().getNearbyEntities(loc, radius, radius, radius)) {
+            if (entity instanceof LivingEntity livingEntity && entity != shooter) {
+                double distance = loc.distance(entity.getLocation());
+                if (distance <= radius) {
+                    // Damage falls off with distance
+                    double damage = 20.0 * (1.0 - (distance / radius));
+                    livingEntity.damage(damage, shooter);
+                    
+                    // Knockback
+                    Vector knockback = entity.getLocation().toVector().subtract(loc.toVector()).normalize().multiply(2.0);
+                    if (entity instanceof org.bukkit.entity.LivingEntity le) {
+                        le.setVelocity(le.getVelocity().add(knockback));
+                    }
+                }
+            }
+        }
+        
+        // Fire particles
+        loc.getWorld().spawnParticle(Particle.FLAME, loc, 50, 2, 2, 2, 0.1);
+    }
+    
     private static double getDamage(WeaponType weaponType) {
         return switch (weaponType) {
             case PISTOL -> 4.0;
@@ -88,6 +163,7 @@ public class ShootingMechanic {
             case ASSAULT_RIFLE -> 4.5;
             case SNIPER_RIFLE -> 15.0;
             case SHOTGUN -> 3.0; // Per pellet, total can be high at close range
+            case RPG -> 20.0; // Base damage for RPG explosion
         };
     }
     
