@@ -104,6 +104,8 @@ public class WeaponListener implements Listener {
         int currentAmmo = WeaponData.getCurrentAmmo(weapon);
         
         var meta = weapon.getItemMeta();
+        if (meta == null) return;
+        
         var lore = new java.util.ArrayList<String>();
         lore.add("§7类型：" + type.getChineseName());
         lore.add("§7弹匣容量：§e" + magazineSize);
