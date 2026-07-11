@@ -8,6 +8,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class ReloadingMechanic {
 
+    @SuppressWarnings("deprecation")
     public static void startReload(Player player, ItemStack weapon, PaperGunPlugin plugin) {
         if (!WeaponData.isWeapon(weapon)) return;
 
@@ -17,8 +18,8 @@ public class ReloadingMechanic {
         WeaponData.setReloading(weapon, true);
         player.sendMessage("§e正在换弹... Reloading §7(" + weaponType.getChineseName() + ")");
 
-        // 修复废弃 API 警告：将 SLOW 改为 SLOWNESS
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 0, false, false));
+        // 恢复使用 SLOW，并通过 @SuppressWarnings 屏蔽废弃警告
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 0, false, false));
 
         int reloadTime = getReloadTime(weaponType);
 
@@ -26,7 +27,7 @@ public class ReloadingMechanic {
             @Override
             public void run() {
                 if (!player.isOnline()) {
-                    player.removePotionEffect(PotionEffectType.SLOWNESS);
+                    player.removePotionEffect(PotionEffectType.SLOW);
                     cancel();
                     return;
                 }
@@ -46,7 +47,7 @@ public class ReloadingMechanic {
 
                 if (!foundWeapon || (foundItem != null && !WeaponData.isReloading(foundItem))) {
                     WeaponData.setReloading(weapon, false);
-                    player.removePotionEffect(PotionEffectType.SLOWNESS);
+                    player.removePotionEffect(PotionEffectType.SLOW);
                     player.sendMessage("§c换弹已取消！Reload cancelled!");
                     cancel();
                     return;
@@ -55,7 +56,7 @@ public class ReloadingMechanic {
                 WeaponData.setCurrentAmmo(foundItem, magazineSize);
                 WeaponData.setReloading(foundItem, false);
 
-                player.removePotionEffect(PotionEffectType.SLOWNESS);
+                player.removePotionEffect(PotionEffectType.SLOW);
                 updateWeaponLore(foundItem, weaponType, magazineSize);
                 player.sendMessage("§a换弹完成！Reload complete! §e" + magazineSize + "/" + magazineSize);
                 player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
@@ -79,7 +80,6 @@ public class ReloadingMechanic {
             case ASSAULT_RIFLE -> 70;
             case SNIPER_RIFLE -> 80;
             case SHOTGUN -> 90;
-            // 修复编译错误：添加 default 分支兜底，防止未覆盖的枚举值导致报错
             default -> 60; 
         };
     }
