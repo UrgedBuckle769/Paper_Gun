@@ -26,11 +26,7 @@
             <id>codemc-repo</id>
             <url>https://repo.codemc.io/repository/maven-public/</url>
         </repository>
-        <!-- 新增：ProtocolLib 官方 Maven 仓库 -->
-        <repository>
-            <id>dmulloy2-repo</id>
-            <url>https://repo.dmulloy2.net/repository/public/</url>
-        </repository>
+        <!-- 注意：已移除 dmulloy2-repo，因为官方已废弃该仓库，5.1.0+ 已迁移至 Maven Central -->
     </repositories>
 
     <dependencies>
@@ -41,9 +37,9 @@
             <scope>provided</scope>
         </dependency>
         
-        <!-- 修改：将 artifactId 从 ProtocolLib-API 改为 ProtocolLib -->
+        <!-- 修改：将 groupId 从 com.comphenix.protocol 改为 net.dmulloy2 -->
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
+            <groupId>net.dmulloy2</groupId>
             <artifactId>ProtocolLib</artifactId>
             <version>5.1.0</version>
             <scope>provided</scope>
