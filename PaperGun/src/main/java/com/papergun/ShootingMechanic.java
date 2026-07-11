@@ -31,7 +31,7 @@ public class ShootingMechanic {
         // Spawn particles
         player.spawnParticle(Particle.FLAME, eyeLoc.add(direction.clone().multiply(2)), 10, 0.1, 0.1, 0.1, 0.05);
         
-        // Ray trace for hit detection
+        // Ray trace for hit detection - single ray from eye location
         for (int i = 0; i < weaponType.getPelletCount(); i++) {
             // Add slight spread for shotguns and some weapons
             Vector spreadDir = direction.clone();
@@ -43,7 +43,8 @@ public class ShootingMechanic {
                 )).normalize();
             }
             
-            RayTraceResult result = player.getWorld().rayTraceEntities(
+            // First check entity hit
+            RayTraceResult entityResult = player.getWorld().rayTraceEntities(
                 eyeLoc,
                 spreadDir,
                 100.0, // Max range
@@ -51,8 +52,34 @@ public class ShootingMechanic {
                 entity -> entity != player && entity instanceof LivingEntity
             );
             
-            if (result != null && result.getHitEntity() != null) {
-                Entity hitEntity = result.getHitEntity();
+            // Check block hit
+            RayTraceResult blockResult = player.getWorld().rayTraceBlocks(
+                eyeLoc,
+                spreadDir,
+                100.0,
+                org.bukkit.FluidCollisionMode.NEVER,
+                true
+            );
+            
+            // Determine which hit is closer (if any)
+            Entity hitEntity = null;
+            Location hitLocation = null;
+            double entityDistance = Double.MAX_VALUE;
+            double blockDistance = Double.MAX_VALUE;
+            
+            if (entityResult != null && entityResult.getHitEntity() != null) {
+                hitEntity = entityResult.getHitEntity();
+                entityDistance = eyeLoc.distance(entityResult.getHitPosition().toLocation(player.getWorld()));
+            }
+            
+            if (blockResult != null && blockResult.getHitBlock() != null) {
+                hitLocation = blockResult.getHitPosition().toLocation(player.getWorld());
+                blockDistance = eyeLoc.distance(hitLocation);
+            }
+            
+            // Process the closer hit
+            if (hitEntity != null && entityDistance <= blockDistance) {
+                // Hit entity first
                 if (hitEntity instanceof LivingEntity livingEntity) {
                     // Apply damage based on weapon type
                     double damage = getDamage(weaponType);
@@ -67,22 +94,12 @@ public class ShootingMechanic {
                     // Hit particles
                     player.spawnParticle(Particle.DAMAGE_INDICATOR, hitEntity.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0.1);
                 }
-            } else {
-                // Block hit - spawn particles at max range or block hit location
-                RayTraceResult blockResult = player.getWorld().rayTraceBlocks(
-                    eyeLoc,
-                    spreadDir,
-                    100.0,
-                    org.bukkit.FluidCollisionMode.NEVER,
-                    true
-                );
-                
-                if (blockResult != null && blockResult.getHitBlock() != null) {
-                    Location hitLoc = blockResult.getHitPosition().toLocation(player.getWorld());
-                    player.spawnParticle(Particle.BLOCK_CRACK, hitLoc, 15, 0.2, 0.2, 0.2, 0.05, 
-                        org.bukkit.Material.STONE.createBlockData());
-                }
+            } else if (hitLocation != null) {
+                // Hit block first (or no entity hit)
+                player.spawnParticle(Particle.BLOCK_CRACK, hitLocation, 15, 0.2, 0.2, 0.2, 0.05, 
+                    org.bukkit.Material.STONE.createBlockData());
             }
+            // If neither hit, bullet travels to max range with no effect
         }
     }
     
