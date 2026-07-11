@@ -9,8 +9,16 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class WeaponListener implements Listener {
+    
+    private final PaperGunPlugin plugin;
+    
+    public WeaponListener(PaperGunPlugin plugin) {
+        this.plugin = plugin;
+        startActionBarUpdater();
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -51,7 +59,7 @@ public class WeaponListener implements Listener {
         // Check ammo
         int currentAmmo = WeaponData.getCurrentAmmo(item);
         if (currentAmmo <= 0) {
-            player.sendMessage("§c弹药耗尽! 按 F 键换弹.");
+            player.sendMessage("§c弹药耗尽！按 F 键换弹.");
             player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_STONE_BUTTON_CLICK_OFF, 1.0f, 2.0f);
             return;
         }
@@ -83,7 +91,7 @@ public class WeaponListener implements Listener {
             if (!WeaponData.isReloading(mainHand)) {
                 // Start reload instead of swapping
                 event.setCancelled(true);
-                ReloadingMechanic.startReload(player, mainHand);
+                ReloadingMechanic.startReload(player, mainHand, plugin);
             } else {
                 // Already reloading, just cancel
                 event.setCancelled(true);
@@ -97,10 +105,10 @@ public class WeaponListener implements Listener {
         
         var meta = weapon.getItemMeta();
         var lore = new java.util.ArrayList<String>();
-        lore.add("§7类型: " + type.getChineseName());
-        lore.add("§7弹匣容量: §e" + magazineSize);
-        lore.add("§7当前弹药: §e" + currentAmmo + "/" + magazineSize);
-        lore.add("§7冷却时间: §e" + (type.getCooldownTicks() / 20.0) + "秒");
+        lore.add("§7类型：" + type.getChineseName());
+        lore.add("§7弹匣容量：§e" + magazineSize);
+        lore.add("§7当前弹药：§e" + currentAmmo + "/" + magazineSize);
+        lore.add("§7冷却时间：§e" + (type.getCooldownTicks() / 20.0) + "秒");
         if (type.isAutoFire()) {
             lore.add("§a自动武器");
         }
@@ -109,5 +117,25 @@ public class WeaponListener implements Listener {
         }
         meta.setLore(lore);
         weapon.setItemMeta(meta);
+    }
+    
+    private void startActionBarUpdater() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : plugin.getServer().getOnlinePlayers()) {
+                    ItemStack item = player.getInventory().getItemInMainHand();
+                    if (WeaponData.isWeapon(item)) {
+                        WeaponType type = WeaponData.getWeaponType(item);
+                        if (type != null) {
+                            int currentAmmo = WeaponData.getCurrentAmmo(item);
+                            int magazineSize = WeaponData.getMagazineSize(item);
+                            String message = "§eAMMO: §c[" + currentAmmo + "/" + magazineSize + "] §7类型:§b" + type.getChineseName();
+                            player.sendActionBar(message);
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 5L); // Update every 5 ticks (0.25 seconds)
     }
 }

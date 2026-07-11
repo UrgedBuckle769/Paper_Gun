@@ -1,9 +1,38 @@
 ```
 # Compiled and build artifacts
 *.class
+*.o
+*.obj
+*.out
+build/
 target/
 
 # Dependencies
-.mvn/
-mvn/
+.gradle/
+libs/
+lib/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Editors
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Coverage reports
+coverage/
+htmlcov/
+*.coverage
+
+# Package manager caches
+node_modules/
+__pycache__/
+*.egg-info/
 ```
