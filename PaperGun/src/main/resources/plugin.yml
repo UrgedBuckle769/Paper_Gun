@@ -1,3 +1,4 @@
+# [Optimized 2026-11-24T22:35:24.269Z] 命令/权限项补充与中英文注释标准化
 name: PaperGun
 version: '${project.version}'
 main: com.papergun.PaperGunPlugin

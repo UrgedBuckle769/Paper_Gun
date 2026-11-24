@@ -1,4 +1,6 @@
+// [Refactor 2026-11-24T22:35:59.283Z] 事件监听结构标准化，补注释和主干示例
 package com.papergun;
+    // 优化: 事件注册与注销分离，统一监听风格与文档
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerPriority;
