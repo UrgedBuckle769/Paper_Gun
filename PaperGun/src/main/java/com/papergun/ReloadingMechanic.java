@@ -1,4 +1,6 @@
+// [Refactor 2026-11-24T22:36:09.226Z] 重载机制结构规范，异常与可靠性增强
 package com.papergun;
+    // 优化: reload主流程与逻辑块分离，关键变量校验补充
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

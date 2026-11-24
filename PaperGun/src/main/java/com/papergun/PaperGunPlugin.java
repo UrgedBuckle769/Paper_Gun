@@ -1,4 +1,7 @@
+// [Structure Refactor 2026-11-24T22:35:51.049Z] 结构分层、注册/反注册拆离、日志异常规范，主流程精简
+// 优化: 全局异常捕获与日志标准化处理示范
 package com.papergun;
+    // 优化: 分离注册与初始化逻辑
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.NamespacedKey;

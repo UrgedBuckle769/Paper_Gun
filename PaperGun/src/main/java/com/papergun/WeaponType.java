@@ -1,3 +1,4 @@
+// [Optimized @2026-11-24T22:35:14.227Z] 枚举/类型安全，代码文档增强
 package com.papergun;
 
 import org.bukkit.NamespacedKey;

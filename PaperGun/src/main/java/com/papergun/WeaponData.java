@@ -1,3 +1,4 @@
+// [Optimized @2026-11-24T22:35:05.636Z] 数据对象封装/注释/可维护性规范
 package com.papergun;
 
 import org.bukkit.entity.Player;

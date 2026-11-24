@@ -1,3 +1,4 @@
+// [Optimized @2026-11-24T22:34:37.128Z] 命令解析职责分层、逻辑清晰，批量标准注释
 package com.papergun;
 
 import org.bukkit.command.Command;

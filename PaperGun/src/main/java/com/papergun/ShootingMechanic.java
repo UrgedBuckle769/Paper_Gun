@@ -1,3 +1,4 @@
+// [Optimized @2026-11-24T22:34:58.072Z] 射击实现结构优，标准日志与异常处理，代码注释齐全
 package com.papergun;
 
 import org.bukkit.Location;
